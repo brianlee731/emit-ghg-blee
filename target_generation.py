@@ -18,12 +18,15 @@
 # Authors: Markus Foote
 
 # version working-6 with full modtran runs and warnings and optimizations
+from utils import ReadAbstractDataSet
+
 from os.path import exists
 import numpy as np
 import scipy.ndimage
 import argparse
 import spectral
 import h5py
+import pdb
 
 
 def check_param(value, min, max, name):
@@ -143,7 +146,8 @@ def load_ch4_dataset():
     # if correcthash != filehash:
     #     raise RuntimeError('Dataset file is invalid.')
     # datafile = np.load(filename)
-    datafile = h5py.File('/beegfs/scratch/jchapman/CO2CH4TargetGen/dataset_ch4_full.hdf5', 'r', rdcc_nbytes=4194304)
+    #datafile = h5py.File('/beegfs/scratch/jchapman/CO2CH4TargetGen/dataset_ch4_full.hdf5', 'r', rdcc_nbytes=4194304)
+    datafile = h5py.File('./dataset_ch4_full.hdf5', 'r', rdcc_nbytes=4194304)
     return datafile['modtran_data'], datafile['modtran_param'], datafile['wave'], 'ch4'
 
 
@@ -272,9 +276,9 @@ def main(input_args=None):
              'water': args.water_vapor,
              'order': args.order}
     if args.hdr and exists(args.hdr):
-        image = spectral.io.envi.open(args.hdr)
-        centers = np.array([float(x) for x in image.metadata['wavelength']])
-        fwhm = np.array([float(x) for x in image.metadata['fwhm']])
+        ds = ReadAbstractDataSet(args.hdr, netcdf_key = 'radiance', envi_interleave = 'bil')
+        centers = ds.metadata['wavelength']
+        fwhm = ds.metadata['fwhm']
     elif args.txt and exists(args.txt):
         data = np.loadtxt(args.txt, usecols=(0, 1),delimiter=',')
         centers = data[:, 0]
